@@ -15,8 +15,13 @@ import android.view.View;
 import android.widget.Toast;
 
 public class GameCanvas extends View {
+	boolean stop=false;
+	int changer=0;
+	int Score=0;
+	int life =1;
 	int xx=50;
 	int widt;
+	int hit;
  boolean isFirstTime=true;
  int rs;
 	Paint paint;
@@ -63,23 +68,38 @@ public class GameCanvas extends View {
 		
 		
 		case 3: if(goingRight==true){
-			x++;
-			y--;
+			if(changer==0)
+				{x++;
+				y--;}
+			else if (changer==1){
+				x=(float)(x+1.5);
+				y=(float)(y+1.2);
+			}
 			break;
 	}
-	else{	x--;
-			y--;
+	else{	
+		if(changer==0){
+		x--;
+			y--;}
+		else if (changer ==1)
+		{
+			x=(float)(x+1.5);
+		
+			y=(float)(y+1.2);}
 			break;
+		
 	}
 		
 		
 		case 4: if(goingRight==true){
 			x++;
 			y++;
+			changer=0;
 			break;
 	}
 	else{	x--;
 			y++;
+			changer=0;
 			break;
 	}
 		default: {x++;
@@ -110,6 +130,7 @@ public class GameCanvas extends View {
 	protected void onDraw(Canvas canvas)
 	{
 		widt=canvas.getWidth();
+		hit=canvas.getHeight();
 		if(firstTime)
 		{
 			firstTime=false;
@@ -125,6 +146,19 @@ public class GameCanvas extends View {
 		drawRectangle(canvas);
 		detectBrickCollision();
 		drawBar(canvas);
+		detectBarCollision();
+		if(life!=0){
+		paint.setColor(Color.DKGRAY);
+		paint.setTextSize(20);
+		canvas.drawText("Score: "+String.valueOf(Score), widt-180, 35, paint);
+		paint.setColor(Color.BLACK);
+		canvas.drawText("Life: "+String.valueOf(life), 20, 35, paint);
+	}
+		else{
+			paint.setColor(Color.GREEN);
+			paint.setTextSize(30);
+			canvas.drawText("GAME END", widt/2, hit/2, paint);
+			stop=true;}
 		new Thread(new Task()).start();
 		//invalidate();
 	}
@@ -171,7 +205,7 @@ public class GameCanvas extends View {
 	brutal=brutal+rectWidth;	
 		}
 		//pair[k]=values.get(0);
-		float ddd=(float)pair[k].getX();
+		
 		//Log.d(Float.toString(ddd),Float.toString(ddd));
 		
 		for (rs=0;rs<values.size();rs++){
@@ -234,15 +268,34 @@ public class GameCanvas extends View {
 			Pair xtreme=values.get(i);
 			v=xtreme.getX();
 			t=xtreme.getY();
-			Log.d("SAD", Double.toString(t));
+			//Log.d("SAD", Double.toString(t));
 			if(v<x && x<t && y>60 && y<100){
 				values.remove(i);
+				Score++;
 				if(goingDown==false){
 				goingDown=true;}
 				else goingDown=false;
 			}
 		}
 		
+	}
+	
+	public boolean detectBarCollision(){
+		Log.d(Integer.toString(changer),"WOW");
+		if(y==hit-30 && x>barLocation+xx && x<barLocation2+xx){
+			detectBarHitPosition(barLocation+xx,barLocation2+xx);
+			goingDown=false;
+			return true;
+		}
+		if(y==hit+1){life--;}
+		
+		return false;
+	}
+	
+	public void detectBarHitPosition(double a, double b){
+		double c = (a+b)/3;
+	if(x>c && x<c+c){changer=1;}
+	
 	}
 	
     class Task implements Runnable {
@@ -255,7 +308,9 @@ public class GameCanvas extends View {
 	    		                //{
 	    		                    //Thread.sleep(1);
 							long t = (long) 0.000000000000002;
-	    		                     postInvalidateDelayed (t);
+							if(!stop){
+	    		                     postInvalidateDelayed (t);}
+							
 	    		                //} 
 	    		                //catch (InterruptedException e) 
 	    		                //{
